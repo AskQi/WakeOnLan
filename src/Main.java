@@ -18,12 +18,6 @@ public class Main  {
     private static ArrayList<RemotePC> remotePCs = new ArrayList<>();
     private static String  saveTextField;
     public static void main(String[]args) throws IOException {
-
-        try {
-            System.out.println(ping("192.168.1.109"));
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
         loadProperties();
         createNetStat();
         createWindow();
