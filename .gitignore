@@ -1,5 +1,5 @@
-/out/
-out/
-/.idea/
-.idea/
+.DS_Store
 .idea
+src
+out
+out/**
