@@ -46,12 +46,12 @@ public class RemotePC {
     void turnOff(){
         if (!this.getGebruikersnaam().isEmpty()) {
             System.out.println("removing" + this);
-            String command = "c:/VR/psshutdown.exe \\\\"+ this.getNetwerknaam()+" -u VR5 -p vr -h -t 1 " ;
+            String command = "c:/VR/psshutdown.exe \\\\"+ this.getNetwerknaam()+" -u "+ this.gebruikersnaam + " -p " +  this.wachtwoord + " -h -t 1 " ;
             Main.sendCommand(command);
         }
     }
 
-    void wakeOnLan(String ipStr, String macStr){
+    void turnOn(String ipStr, String macStr){
         final int PORT = 9;
         try {
             byte[] macBytes = getMacBytes(macStr);

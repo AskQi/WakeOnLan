@@ -3,9 +3,6 @@ import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.*;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.concurrent.Executors;
@@ -46,7 +43,7 @@ public class Main  {
     private static void turnOnAllPCs(ArrayList<RemotePC> temp) {
         for(RemotePC pc: temp){
             System.out.println(pc);
-            pc.wakeOnLan(prop.getProperty("subnetmask"), pc.getMacadres());
+            pc.turnOn(prop.getProperty("subnetmask"), pc.getMacadres());
         }
     }
 
@@ -63,7 +60,6 @@ public class Main  {
         for(RemotePC pc: temp){
             pc.turnOff();
         }
-
     }
 
     private static boolean ping(String host) throws IOException, InterruptedException {
