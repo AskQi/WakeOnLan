@@ -1,7 +1,9 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Properties;
@@ -56,9 +58,9 @@ public class Main  {
     }
 
 
-    private static void turnOffAllPCs(ArrayList<RemotePC> temp)  {
+    private static void turnOffAllPCs(ArrayList<RemotePC> temp) throws IOException {
         for(RemotePC pc: temp){
-            pc.turnOff();
+            pc.turnOff(pc);
         }
     }
 
@@ -72,7 +74,7 @@ public class Main  {
         return returnVal == 0;
     }
 
-    private static void turnOffxPCs(String pcArray) {
+    private static void turnOffxPCs(String pcArray) throws IOException {
         if(pcArray.isEmpty()){
             return;
         }
@@ -84,33 +86,25 @@ public class Main  {
     }
 
     private static void createNetStat(){
-        for(RemotePC pc: remotePCs){
-            if (!pc.getGebruikersnaam().isEmpty()) {
-                System.out.println("removing" + pc);
-                String command = "net use \\\\" +
-                        pc.getNetwerknaam() + " /user:" + pc.getGebruikersnaam() +  " "+ pc.getWachtwoord();
-                sendCommand(command);
-                System.out.println(command);
 
-            }
-        }
         }
 
-    static void sendCommand(String command) {
-        ProcessBuilder builder = new ProcessBuilder();
-        builder.command("cmd.exe", "/c", command);
-        builder.directory(new File(System.getProperty("user.home")));
-        Process process = null;
-        try {
-            process = builder.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        assert process != null;
-        StreamGobbler streamGobbler =
-                new StreamGobbler(process.getInputStream(), System.out::println);
-        Executors.newSingleThreadExecutor().submit(streamGobbler);
-    }
+//    static void sendCommand(String command) {
+//        System.out.println("Sending command  " + command);
+//        ProcessBuilder builder = new ProcessBuilder();
+//        builder.command("cmd.exe", "/c", command);
+//        builder.directory(new File(System.getProperty("user.home")));
+//        Process process = null;
+//        try {
+//            process = builder.start();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        assert process != null;
+//        StreamGobbler streamGobbler =
+//                new StreamGobbler(process.getInputStream(), System.out::println);
+//        Executors.newSingleThreadExecutor().submit(streamGobbler);
+//    }
 
 
 
@@ -131,7 +125,7 @@ public class Main  {
         }
     }
 
-    private static void createWindow(){
+    private static void createWindow() throws IOException {
         try {
             UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
@@ -168,16 +162,15 @@ public class Main  {
         });
 
         textField.setBounds(350,35,350, 35);
-        JTextField outputTextField = new JTextField(prop.getProperty(String.valueOf(remotePCs.get(0).getWachtwoord())));
-        outputTextField.setBounds(10,200,560, 35);
-        outputTextField.setEditable(false);
 
+
+        ImagePanel imagepanel = new ImagePanel();
+        f.add(imagepanel);
         //add to frame
         f.add(allOnButton);
         f.add(allOffButton);
         f.add(turnOnXButton);
         f.add(turnOffXButton);
-        f.add(outputTextField, BorderLayout.SOUTH);
 
         f.add(textField);
         f.setSize(800,300);
@@ -187,9 +180,21 @@ public class Main  {
 
         //action listener
         allOnButton.addActionListener(arg0 -> turnOnAllPCs(remotePCs));
-        allOffButton.addActionListener(arg0 -> turnOffAllPCs(remotePCs));
+        allOffButton.addActionListener(arg0 -> {
+            try {
+                turnOffAllPCs(remotePCs);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
         turnOnXButton.addActionListener(arg0 -> turnOnxPCs(saveTextField));
-        turnOffXButton.addActionListener(arg0 -> turnOffxPCs(saveTextField));
+        turnOffXButton.addActionListener(arg0 -> {
+            try {
+                turnOffxPCs(saveTextField);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
 
     }
 }

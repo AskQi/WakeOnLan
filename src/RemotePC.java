@@ -1,8 +1,13 @@
+import java.io.File;
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.concurrent.Executors;
 
 import static java.lang.Integer.parseInt;
+import static java.lang.Integer.toHexString;
 
 public class RemotePC {
     private String netwerknaam;
@@ -43,11 +48,11 @@ public class RemotePC {
                 '}';
     }
 
-    void turnOff(){
+    void turnOff(RemotePC pc)  {
         if (!this.getGebruikersnaam().isEmpty()) {
-            System.out.println("removing" + this);
-            String command = "c:/VR/psshutdown.exe \\\\"+ this.getNetwerknaam()+" -u "+ this.gebruikersnaam + " -p " +  this.wachtwoord + " -h -t 1 " ;
-            Main.sendCommand(command);
+            String command = "c:/VR/psshutdown.exe \\\\"+ this.getNetwerknaam()+" -u "+ this.gebruikersnaam + " -p " +  this.wachtwoord + " -h -f -t 1  " ;
+            CommandThread shutdownThread = new CommandThread(command, pc);
+            shutdownThread.run();
         }
     }
 
@@ -93,5 +98,81 @@ public class RemotePC {
         return bytes;
     }
 
+
+
+    class CommandThread implements Runnable{
+        String command;
+        RemotePC pc;
+        CommandThread(String command, RemotePC pc){
+            this.command = command;
+            this.pc=  pc;
+        }
+
+        private Boolean isOn(String pcName) throws IOException {
+            InetAddress pc = InetAddress.getByName(pcName);
+            for(int i = 0; i <=2;i++){
+                System.out.println("Sending Ping Request to " + pcName);
+                if(pc.isReachable(1)){
+                    System.out.println("PC" + pcName + "turned on");
+                    return true;
+                }
+            }
+            System.out.println("PC" + pcName + "turned OFF");
+            return false;
+        }
+
+        void sendCommand(String command) {
+            String netCommand = "net use \\\\" +
+                    pc.getNetwerknaam() + " /user:" + pc.getGebruikersnaam() +  " "+ pc.getWachtwoord();
+
+            System.out.println("Sending command  " + command);
+            System.out.println("Sending NET command  " + netCommand);
+
+
+            ProcessBuilder netBuilder = new ProcessBuilder();
+            netBuilder.command("cmd.exe", "/c", netCommand);
+            netBuilder.directory(new File(System.getProperty("user.home")));
+
+            ProcessBuilder builder = new ProcessBuilder();
+            builder.command("cmd.exe", "/c", command);
+            builder.directory(new File(System.getProperty("user.home")));
+
+            Process netProcess = null;
+            Process process = null;
+            try {
+                netProcess = netBuilder.start();
+                process = builder.start();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            assert netProcess != null;
+            assert process != null;
+            Main.StreamGobbler netstreamGobbler =
+                    new Main.StreamGobbler(netProcess.getInputStream(), System.out::println);
+            Main.StreamGobbler streamGobbler =
+                    new Main.StreamGobbler(process.getInputStream(), System.out::println);
+            Executors.newSingleThreadExecutor().submit(netstreamGobbler);
+            Executors.newSingleThreadExecutor().submit(streamGobbler);
+
+        }
+
+        @Override
+        public void run() {
+            try {
+                System.out.println("checking on");
+                if(isOn(pc.netwerknaam)){
+                    System.out.println(pc.netwerknaam + " is on!");
+                    sendCommand(command);
+                }
+            }
+            catch(Exception e){
+                System.out.println(e.toString());
+            }
+        }
+    }
 }
+
+
+
+
 
