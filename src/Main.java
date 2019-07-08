@@ -1,13 +1,10 @@
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Properties;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 import static java.lang.Integer.parseInt;

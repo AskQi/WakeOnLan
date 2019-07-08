@@ -3,11 +3,9 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.concurrent.Executors;
 
 import static java.lang.Integer.parseInt;
-import static java.lang.Integer.toHexString;
 
 public class RemotePC {
     private String netwerknaam;
@@ -22,15 +20,15 @@ public class RemotePC {
         this.macadres = macadres;
     }
 
-    String getNetwerknaam() {
+    private String getNetwerknaam() {
         return netwerknaam;
     }
 
-    String getGebruikersnaam() {
+    private String getGebruikersnaam() {
         return gebruikersnaam;
     }
 
-    String getWachtwoord() {
+    private String getWachtwoord() {
         return wachtwoord;
     }
 
@@ -113,20 +111,19 @@ public class RemotePC {
             for(int i = 0; i <=2;i++){
                 System.out.println("Sending Ping Request to " + pcName);
                 if(pc.isReachable(1)){
-                    System.out.println("PC" + pcName + "turned on");
+                    System.out.println("PC" + pcName + "is ON");
                     return true;
                 }
             }
-            System.out.println("PC" + pcName + "turned OFF");
+            System.out.println("PC" + pcName + "is OFF");
             return false;
         }
 
-        void sendCommand(String command) {
+        void sendCommand() {
+            String command = "c:/VR/psshutdown.exe \\\\"+ pc.getNetwerknaam()+" -u "+ pc.gebruikersnaam + " -p " +  pc.wachtwoord + " -h -f -t 1  " ;
             String netCommand = "net use \\\\" +
                     pc.getNetwerknaam() + " /user:" + pc.getGebruikersnaam() +  " "+ pc.getWachtwoord();
 
-            System.out.println("Sending command  " + command);
-            System.out.println("Sending NET command  " + netCommand);
 
 
             ProcessBuilder netBuilder = new ProcessBuilder();
@@ -151,7 +148,9 @@ public class RemotePC {
                     new Main.StreamGobbler(netProcess.getInputStream(), System.out::println);
             Main.StreamGobbler streamGobbler =
                     new Main.StreamGobbler(process.getInputStream(), System.out::println);
+            System.out.println("Sending NETcommand  " + netCommand);
             Executors.newSingleThreadExecutor().submit(netstreamGobbler);
+            System.out.println("Sending command  " + command);
             Executors.newSingleThreadExecutor().submit(streamGobbler);
 
         }
@@ -159,10 +158,8 @@ public class RemotePC {
         @Override
         public void run() {
             try {
-                System.out.println("checking on");
                 if(isOn(pc.netwerknaam)){
-                    System.out.println(pc.netwerknaam + " is on!");
-                    sendCommand(command);
+                    sendCommand();
                 }
             }
             catch(Exception e){
