@@ -9,6 +9,9 @@ Usage
 2: every pc needs to have psshutdown.exe installed, host and remotes.  https://docs.microsoft.com/en-us/sysinternals/downloads/psshutdown
 
 3: every remote pc needs have the following registry change: https://prnt.sc/o2wl3j
+        you can also run these two scripts to fix all the registry things:
+        ```REG ADD HKLM\SOFTWARE\MICROSOFT\WINDOWS\CURRENTVERSION\POLICIES\SYSTEM /v ENABLELUA /t REG_DWORD /d 0 /f```
+        ```REG ADD HKLM\SOFTWARE\MICROSOFT\WINDOWS\CURRENTVERSION\POLICIES\SYSTEM /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f```
 
 4: every remote pc needs to be publicly accessible on the lan network it is connected to. 
 
