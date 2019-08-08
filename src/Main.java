@@ -15,7 +15,6 @@ public class Main  {
     private static String  saveTextField;
     public static void main(String[]args) throws IOException {
         loadProperties();
-        createNetStat();
         createWindow();
     }
 
@@ -39,72 +38,6 @@ public class Main  {
                 );
     }
 
-    private static void turnOnAllPCs(ArrayList<RemotePC> temp) {
-        for(RemotePC pc: temp){
-            System.out.println(pc);
-            pc.turnOn(prop.getProperty("subnetmask"), pc.getMacadres());
-        }
-    }
-
-    private static void turnOnxPCs(String pcArray) {
-        ArrayList<RemotePC> temp = new ArrayList<>();
-        for (char i: pcArray.toCharArray()){
-            temp.add(remotePCs.get(parseInt(String.valueOf(i))-1));
-        }
-        turnOnAllPCs(temp);
-    }
-
-
-    private static void turnOffAllPCs(ArrayList<RemotePC> temp) throws IOException {
-        for(RemotePC pc: temp){
-            pc.turnOff(pc);
-        }
-    }
-
-    private static boolean ping(String host) throws IOException, InterruptedException {
-        boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
-
-        ProcessBuilder processBuilder = new ProcessBuilder("ping", isWindows? "-n" : "-c", "1", host);
-        Process proc = processBuilder.start();
-
-        int returnVal = proc.waitFor();
-        return returnVal == 0;
-    }
-
-    private static void turnOffxPCs(String pcArray) throws IOException {
-        if(pcArray.isEmpty()){
-            return;
-        }
-        ArrayList<RemotePC> temp = new ArrayList<>();
-        for (char i: pcArray.toCharArray()){
-            temp.add(remotePCs.get(parseInt(String.valueOf(i))-1));
-        }
-        turnOffAllPCs(temp);
-    }
-
-    private static void createNetStat(){
-
-        }
-
-//    static void sendCommand(String command) {
-//        System.out.println("Sending command  " + command);
-//        ProcessBuilder builder = new ProcessBuilder();
-//        builder.command("cmd.exe", "/c", command);
-//        builder.directory(new File(System.getProperty("user.home")));
-//        Process process = null;
-//        try {
-//            process = builder.start();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        assert process != null;
-//        StreamGobbler streamGobbler =
-//                new StreamGobbler(process.getInputStream(), System.out::println);
-//        Executors.newSingleThreadExecutor().submit(streamGobbler);
-//    }
-
-
-
 
 
 
@@ -122,7 +55,7 @@ public class Main  {
         }
     }
 
-    private static void createWindow() throws IOException {
+    private static void createWindow()  {
         try {
             UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
@@ -131,14 +64,18 @@ public class Main  {
         JFrame f=new JFrame("Start/shutdown pc's");
         //submit button
         JButton allOnButton=new JButton("Alles aan");
-        JButton allOffButton=new JButton("Alles uit");
+        JButton allHibernateButton=new JButton("Hibernate alles");
         JButton turnOnXButton=new JButton("Zet x aan");
-        JButton turnOffXButton=new JButton("Zet x uit");
+        JButton hibernatexButton=new JButton("Hibernate x uit");
+        JButton turnAllOffButton = new JButton("Zet alles uit") ;
+        JButton turnxOffButton = new JButton("Zet x uit");
 
         allOnButton.setBounds(10,10,140, 40);
-        allOffButton.setBounds(10,60,140, 40);
         turnOnXButton.setBounds(200,10,140, 40);
-        turnOffXButton.setBounds(200,60,140, 40);
+        allHibernateButton.setBounds(10,60,140, 40);
+        hibernatexButton.setBounds(200,60,140, 40);
+        turnAllOffButton.setBounds(10,110,140, 40);
+        turnxOffButton.setBounds(200,110,140, 40);
 
         JTextField textField = new JTextField("PC nummers simpel achter elkaar. BV: '124'");
 
@@ -165,9 +102,11 @@ public class Main  {
         f.add(imagepanel);
         //add to frame
         f.add(allOnButton);
-        f.add(allOffButton);
+        f.add(allHibernateButton);
         f.add(turnOnXButton);
-        f.add(turnOffXButton);
+        f.add(hibernatexButton);
+        f.add(turnAllOffButton);
+        f.add(turnxOffButton);
 
         f.add(textField);
         f.setSize(800,300);
@@ -177,21 +116,80 @@ public class Main  {
 
         //action listener
         allOnButton.addActionListener(arg0 -> turnOnAllPCs(remotePCs));
-        allOffButton.addActionListener(arg0 -> {
+        turnOnXButton.addActionListener(arg0 -> turnOnxPCs(saveTextField));
+        turnAllOffButton.addActionListener(arg0 -> turnAllOff(remotePCs));
+        turnxOffButton.addActionListener(arg0 -> {
             try {
-                turnOffAllPCs(remotePCs);
+                turnOfXPCs(saveTextField);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
-        turnOnXButton.addActionListener(arg0 -> turnOnxPCs(saveTextField));
-        turnOffXButton.addActionListener(arg0 -> {
+        allHibernateButton.addActionListener(arg0 -> {
             try {
-                turnOffxPCs(saveTextField);
+                hibernateAllPcs(remotePCs);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        hibernatexButton.addActionListener(arg0 -> {
+            try {
+                hibernateXPCs(saveTextField);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
 
     }
+
+    private static void turnAllOff(ArrayList<RemotePC> temp) {
+            temp.forEach(pc -> pc.turnOff(pc));
+    }
+
+    private static void turnofAllpcs(ArrayList<RemotePC> temp) throws IOException {
+        temp.forEach(pc -> pc.turnOff(pc));
+    }
+
+    private static void turnOfXPCs(String pcArray) throws IOException {
+        if(pcArray.isEmpty()){
+            return;
+        }
+        ArrayList<RemotePC> temp = new ArrayList<>();
+        for (char i: pcArray.toCharArray()){
+            temp.add(remotePCs.get(parseInt(String.valueOf(i))-1));
+        }
+        turnofAllpcs(temp);
+    }
+
+    private static void turnOnAllPCs(ArrayList<RemotePC> temp) {
+        for(RemotePC pc: temp){
+            System.out.println(pc);
+            pc.turnOn(prop.getProperty("subnetmask"), pc.getMacadres());
+        }
+    }
+
+    private static void turnOnxPCs(String pcArray) {
+        ArrayList<RemotePC> temp = new ArrayList<>();
+        for (char i: pcArray.toCharArray()){
+            temp.add(remotePCs.get(parseInt(String.valueOf(i))-1));
+        }
+        turnOnAllPCs(temp);
+    }
+
+    private static void hibernateXPCs(String pcArray) throws IOException {
+        if(pcArray.isEmpty()){
+            return;
+        }
+        ArrayList<RemotePC> temp = new ArrayList<>();
+        for (char i: pcArray.toCharArray()){
+            temp.add(remotePCs.get(parseInt(String.valueOf(i))-1));
+        }
+        hibernateAllPcs(temp);
+    }
+
+    private static void hibernateAllPcs(ArrayList<RemotePC> temp) throws IOException {
+        temp.forEach(pc -> pc.sleep(pc));
+    }
+
+
 }

@@ -48,11 +48,20 @@ public class RemotePC {
 
     void turnOff(RemotePC pc)  {
         if (!this.getGebruikersnaam().isEmpty()) {
+            String command = "c:/VR/psshutdown.exe \\\\"+ this.getNetwerknaam()+" -u "+ this.gebruikersnaam + " -p " +  this.wachtwoord + " -s -f -t 1  " ;
+            CommandThread shutdownThread = new CommandThread(command, pc);
+            shutdownThread.run();
+        }
+    }
+
+    void sleep(RemotePC pc) {
+        if (!this.getGebruikersnaam().isEmpty()) {
             String command = "c:/VR/psshutdown.exe \\\\"+ this.getNetwerknaam()+" -u "+ this.gebruikersnaam + " -p " +  this.wachtwoord + " -h -f -t 1  " ;
             CommandThread shutdownThread = new CommandThread(command, pc);
             shutdownThread.run();
         }
     }
+
 
     void turnOn(String ipStr, String macStr){
         final int PORT = 9;
@@ -107,10 +116,10 @@ public class RemotePC {
         }
 
         private Boolean isOn(String pcName) throws IOException {
-            InetAddress pc = InetAddress.getByName(pcName);
+            InetAddress pingablePC = InetAddress.getByName(pcName);
             for(int i = 0; i <=2;i++){
                 System.out.println("Sending Ping Request to " + pcName);
-                if(pc.isReachable(1)){
+                if(pingablePC.isReachable(100)){
                     System.out.println("PC" + pcName + "is ON");
                     return true;
                 }
@@ -119,8 +128,7 @@ public class RemotePC {
             return false;
         }
 
-        void sendCommand() {
-            String command = "c:/VR/psshutdown.exe \\\\"+ pc.getNetwerknaam()+" -u "+ pc.gebruikersnaam + " -p " +  pc.wachtwoord + " -h -f -t 1  " ;
+        void sendCommand(String command) {
             String netCommand = "net use \\\\" +
                     pc.getNetwerknaam() + " /user:" + pc.getGebruikersnaam() +  " "+ pc.getWachtwoord();
 
@@ -159,7 +167,7 @@ public class RemotePC {
         public void run() {
             try {
                 if(isOn(pc.netwerknaam)){
-                    sendCommand();
+                    sendCommand(command);
                 }
             }
             catch(Exception e){
